@@ -174,7 +174,6 @@ class Score:
         screen.blit(self.img, self.rct)
 
 
-
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
@@ -225,30 +224,25 @@ def main():
             # 既に消されたビームは処理しない
             if beam is None:
                 continue
-            
             # bombsリストから爆弾を一個ずつ取り出す
             for i, bomb in enumerate(bombs):
                 # 既に消された爆弾なら処理しない
                 if bomb is None:
                     continue
-
                 # もしビームと爆弾が衝突したら
                 if beam.rct.colliderect(bomb.rct):  # ビームと爆弾の衝突判定
                     # 爆弾を撃ち落としたから 1点加点
                     score.score += 1
-
                     # ビームを消す
                     beams[j] = None
                     # 当たったら爆弾を消す
                     bombs[i] = None
-
                     # こうかとんを喜び画像にする
                     bird.change_img(6, screen) 
-
                     # このビームはすぐ消えるから
                     # 他の爆弾との衝突判定をやめる
                     break
-
+                
         # Noneになったビームを取り除く            
         beams = [beam for beam in beams if beam is not None]       
         # Noneになった爆弾を取り除く            
