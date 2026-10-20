@@ -138,7 +138,41 @@ class Bomb:
         if not tate:
             self.vy *= -1
         self.rct.move_ip(self.vx, self.vy)
+  
         screen.blit(self.img, self.rct)
+
+
+class Score:
+    """
+    撃ち落とした爆弾数を表示するクラス
+    """
+    def __init__(self):
+        """
+        スコア表示に必要な情報を初期化
+        """
+        # フォントサイズを50
+        self.fonto = pg.font.Font(None, 50)
+        # 文字の色を青
+        self.color = (0, 0, 255)
+        # スコアの初期値 0
+        self.score = 0
+        # 文字列 Surfaceの生成 表示する文字、色
+        self.img = self.fonto.render(f"Score{self.score}", 0, self.color)
+        # 文字　surfaceのRectを取得
+        self.rct = self.img.get_rect()
+        # Scoreを画面左下に配置
+        self.rct.center = (100, HEIGHT -50)
+
+    def update(self, screen: pg.Surface):
+        """
+        現在のスコアを画面に表示
+        """
+        # 現在のスコアで文字surfaceを作り直す
+        self.img = self.fonto.render(f"Score：{self.score}", 0, self.color)
+
+        # スコアを画面に表示
+        screen.blit(self.img, self.rct)
+
 
 
 def main():
@@ -146,14 +180,19 @@ def main():
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
     bg_img = pg.image.load("fig/pg_bg.jpg")
     bird = Bird((300, 200))
-    # bomb = Bomb((255, 0, 0), 10)
-    # bombs = []
-    # for _ in range(NUM_OF_BOMBS):
-    #     bombs.append(Bomb((255, 0, 0), 10))
+    # 練習5：複数爆弾
+    bombs = []
+    for _ in range(NUM_OF_BOMBS):
+        bombs.append(Bomb((255, 0, 0), 10))
+    # Bombを5個作る
     bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)]
+
     beam = None  # ゲーム初期化時にはビームは存在しない
     clock = pg.time.Clock()
     tmr = 0
+    # スコアインスタンスを生成
+    score = Score()
+    
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -167,6 +206,13 @@ def main():
             if bird.rct.colliderect(bomb.rct):
                 # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
                 bird.change_img(8, screen)
+                # フォントを作る
+                fonto = pg.font.Font(None, 80)
+                # 赤文字のGame Over Surfaceを作る
+                txt = fonto.render("Game Over",True,(255, 0, 0))
+                # 画面中央付近に貼り付ける
+                screen.blit(txt,[WIDTH // 2 - 150, HEIGHT // 2])
+
                 pg.display.update()
                 time.sleep(1)
                 return
@@ -174,18 +220,35 @@ def main():
         for i, bomb in enumerate(bombs):
             if beam is not None:
                 if beam.rct.colliderect(bomb.rct):  # ビームと爆弾の衝突判定
+                    # 爆弾を撃ち落としたから 1点加点
+                    score.score += 1
+
+                    # ビームを消す
                     beam = None
+                    # 当たったら爆弾を消す
                     bombs[i] = None
-                    bird.change_img(6, screen)  # よろこびエフェクト
-                    pg.display.update()                    
-        bombs = [bomb for bomb in bombs if bomb is not None]  # Noneを取り除く
+                    # よろこびエフェクト
+                    bird.change_img(6, screen) 
+                    pg.display.update()
+                    
+        # Noneを取り除く            
+        bombs = [bomb for bomb in bombs if bomb is not None]
 
         key_lst = pg.key.get_pressed()
+        # こうかとんを更新・描画
         bird.update(key_lst, screen)
+
+        # ビームがあれば更新・描画
         if beam is not None:
             beam.update(screen)  
+
+        # 全ての爆弾を更新・描画
         for bomb in bombs: 
             bomb.update(screen)
+
+        # updateメソッド呼び出しでスコア描写
+        score.update(screen)
+
         pg.display.update()
         tmr += 1
         clock.tick(50)
